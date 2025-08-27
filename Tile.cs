@@ -3,6 +3,13 @@ using System;
 
 public partial class Tile : Button
 {
+	[Export]
+	public int row;
+	[Export] public int column;
+
+	[Signal]
+	public delegate void PointEventHandler(int row, int column);
+
 	public enum State
 	{
 		None,
@@ -19,5 +26,10 @@ public partial class Tile : Button
 	public State getState() 
 	{
 		return state;
+	}
+
+	public void OnPressed() 
+	{
+		EmitSignal(SignalName.Point, row, column);
 	}
 }

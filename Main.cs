@@ -1,12 +1,16 @@
 using Godot;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using static Tile.State;
 
 public partial class Main : Node
 {
 	[Signal]
 	public delegate void GameOverEventHandler(int result);
+	[Signal]
+	public delegate void GameResetEventHandler();
+
 	public Tile[,] tiles = new Tile[3, 3];
 	public Main() 
 	{
@@ -47,25 +51,25 @@ public partial class Main : Node
 	}
 	public void OrderSelected() 
 	{
-        GetNode<Button>("First").Hide();
-        GetNode<Button>("Second").Hide();
-        for (int i = 0; i < 3; i++)
-        {
-            for (int j = 0; j < 3; j++)
-            {
+		GetNode<Button>("First").Hide();
+		GetNode<Button>("Second").Hide();
+		for (int i = 0; i < 3; i++)
+		{
+			for (int j = 0; j < 3; j++)
+			{
 				tiles[i, j].SetDeferred(Tile.PropertyName.Disabled, false);
-            }
-        }
-    }
+			}
+		}
+	}
 	public void OnFirstPressed() 
 	{
 		OrderSelected();
-    }
+	}
 	public void OnSecondPressed() 
 	{
 		OrderSelected();
 		AIMove();
-    }
+	}
 
 	public void AIMove() 
 	{
@@ -73,7 +77,7 @@ public partial class Main : Node
 		tiles[point.x, point.y].setState(O);
 		JudgeWin();
 	}
-	
+
 	public void JudgeWin() 
 	{
 		AlphaBeta.WhoWin who = new AlphaBeta(tiles).JudgeWhoWin();
@@ -81,6 +85,45 @@ public partial class Main : Node
 		{
 			EmitSignal(SignalName.GameOver,(int)who);
 		}
+	}
+
+	public void OnTilePressed(int row, int column) 
+	{
+		tiles[row, column].setState(X);
+		JudgeWin();
+	}
+	
+	public async Task OnGameOver(int result) 
+	{
+        for (int i = 0; i < 3; i++)
+        {
+            for (int j = 0; j < 3; j++)
+            {
+                tiles[i, j].SetDeferred(Tile.PropertyName.Disabled, true);
+            }
+        }
+        Label message = GetNode<Label>("Message");
+		if(result == (int)AlphaBeta.WhoWin.OWin) 
+		{
+			message.Text = "你输了";
+		}
+        else if (result == (int)AlphaBeta.WhoWin.XWin)
+        {
+            message.Text = "你赢了";
+        }
+		else 
+		{
+			message.Text = "平局";
+		}
+		message.Show();
+		await ToSignal(GetTree().CreateTimer(3), Timer.SignalName.Timeout);
+		message.Hide();
+		EmitSignal(SignalName.GameReset);
+    }
+
+	public void OnGameReset() 
+	{
+		GameStart();
 	}
 }
 
@@ -104,26 +147,26 @@ public class AlphaBeta
 			y = y1;
 		}
 	}
-	List<Point> points0;
-	List<Point> points1;
-	List<Point> pointsm1;
+	List<Point> points0 = new List<Point>();
+	List<Point> points1 = new List<Point>();
+	List<Point> pointsm1 = new List<Point>();
 
 	public AlphaBeta(Tile[,] theBoard) 
 	{
-        for (int i = 0; i < 3; i++)
-        {
-            for (int j = 0; j < 3; j++)
-            {
+		for (int i = 0; i < 3; i++)
+		{
+			for (int j = 0; j < 3; j++)
+			{
 				board[i, j] = theBoard[i, j].getState();
-            }
-        }
-    }
+			}
+		}
+	}
 	public Point GetTile() 
 	{
-        for (int i = 0; i < 3; i++)
-        {
-            for (int j = 0; j < 3; j++)
-            {
+		for (int i = 0; i < 3; i++)
+		{
+			for (int j = 0; j < 3; j++)
+			{
 				int theValue = DeepFirst(i, j, true, 2);
 				if (theValue == 1)
 				{
@@ -136,19 +179,19 @@ public class AlphaBeta
 				else if(points0.Count == 0) 
 				{
 					pointsm1.Add(new Point(i, j));
-                }
-            }
-        }
+				}
+			}
+		}
 		if(points1.Count != 0) 
 		{
 			return points1[GD.RandRange(0, points1.Count - 1)];
 		}
-        if (points0.Count != 0)
-        {
-            return points0[GD.RandRange(0, points0.Count - 1)];
-        }
-        return pointsm1[GD.RandRange(0, pointsm1.Count - 1)];
-    }
+		if (points0.Count != 0)
+		{
+			return points0[GD.RandRange(0, points0.Count - 1)];
+		}
+		return pointsm1[GD.RandRange(0, pointsm1.Count - 1)];
+	}
 	private int DeepFirst(int x, int y, bool isMax, int parent) 
 	{
 		if (board[x,y] != None) 
@@ -170,11 +213,11 @@ public class AlphaBeta
 		{
 			return -1;
 		}
-        for (int i = 0; i < 3; i++)
-        {
-            for (int j = 0; j < 3; j++)
-            {
-                int newValue = DeepFirst(i, j, !isMax, curValue);
+		for (int i = 0; i < 3; i++)
+		{
+			for (int j = 0; j < 3; j++)
+			{
+				int newValue = DeepFirst(i, j, !isMax, curValue);
 				if (isMax) 
 				{
 					if(newValue > curValue) 
@@ -188,20 +231,20 @@ public class AlphaBeta
 				}
 				else 
 				{
-                    if (newValue < curValue)
-                    {
-                        curValue = newValue;
-                    }
-                    if (curValue < parent)
-                    {
-                        return parent;
-                    }
-                }
-            }
-        }
+					if (newValue < curValue)
+					{
+						curValue = newValue;
+					}
+					if (curValue < parent)
+					{
+						return parent;
+					}
+				}
+			}
+		}
 		board[x, y] = None;
 		return curValue;
-    }
+	}
 	public WhoWin JudgeWhoWin() 
 	{
 		if (board[0, 0] != None) 
@@ -212,24 +255,24 @@ public class AlphaBeta
 				return StateToWhoWin(board[0, 0]);
 			}
 		}
-        if (board[2, 2] != None)
-        {
-            if ((board[2, 2] == board[2, 1] && board[2, 2] == board[2, 0])
-                || (board[2, 2] == board[1, 2] && board[2, 2] == board[0, 2]))
-            {
-                return StateToWhoWin(board[2, 2]);
-            }
-        }
+		if (board[2, 2] != None)
+		{
+			if ((board[2, 2] == board[2, 1] && board[2, 2] == board[2, 0])
+				|| (board[2, 2] == board[1, 2] && board[2, 2] == board[0, 2]))
+			{
+				return StateToWhoWin(board[2, 2]);
+			}
+		}
 		if (board[1, 1] != None) 
 		{
-            if ((board[1, 1] == board[1, 0] && board[1, 1] == board[1, 2])
+			if ((board[1, 1] == board[1, 0] && board[1, 1] == board[1, 2])
 				|| (board[1, 1] == board[0, 1] && board[1, 1] == board[2, 1])
-                || (board[1, 1] == board[0, 0] && board[1, 1] == board[2, 2])
-                || (board[1, 1] == board[2, 0] && board[1, 1] == board[2, 0]))
-            {
-                return StateToWhoWin(board[1, 1]);
-            }
-        }
+				|| (board[1, 1] == board[0, 0] && board[1, 1] == board[2, 2])
+				|| (board[1, 1] == board[2, 0] && board[1, 1] == board[2, 0]))
+			{
+				return StateToWhoWin(board[1, 1]);
+			}
+		}
 		for(int i=0;i<3;i++)
 		{
 			for(int j = 0; j < 3; j++) 
@@ -241,16 +284,16 @@ public class AlphaBeta
 			}
 		}
 		return WhoWin.Draw;
-    }
+	}
 	private WhoWin StateToWhoWin(Tile.State who) 
 	{
-        if (who == O)
-        {
-            return WhoWin.OWin;
-        }
-        else
-        {
-            return WhoWin.XWin;
-        }
-    }
+		if (who == O)
+		{
+			return WhoWin.OWin;
+		}
+		else
+		{
+			return WhoWin.XWin;
+		}
+	}
 }
