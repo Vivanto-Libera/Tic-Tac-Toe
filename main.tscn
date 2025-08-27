@@ -1,8 +1,10 @@
-[gd_scene load_steps=2 format=3 uid="uid://dicv7vkbdtrj7"]
+[gd_scene load_steps=3 format=3 uid="uid://dicv7vkbdtrj7"]
 
+[ext_resource type="Script" uid="uid://20he4silhum" path="res://Main.cs" id="1_0xm2m"]
 [ext_resource type="PackedScene" uid="uid://d1v7u1kbvryhb" path="res://tile.tscn" id="1_ig7tw"]
 
 [node name="Main" type="Node"]
+script = ExtResource("1_0xm2m")
 
 [node name="ColorRect" type="ColorRect" parent="."]
 anchors_preset = 15
@@ -17,51 +19,90 @@ offset_left = 10.0
 offset_top = 10.0
 offset_right = 110.0
 offset_bottom = 110.0
+focus_next = NodePath("../A1")
 
 [node name="A1" parent="." instance=ExtResource("1_ig7tw")]
 offset_left = 120.0
 offset_top = 10.0
 offset_right = 220.0
 offset_bottom = 110.0
+focus_next = NodePath("../A2")
 
 [node name="A2" parent="." instance=ExtResource("1_ig7tw")]
 offset_left = 230.0
 offset_top = 10.0
 offset_right = 330.0
 offset_bottom = 110.0
+focus_next = NodePath("../B0")
 
 [node name="B0" parent="." instance=ExtResource("1_ig7tw")]
 offset_left = 10.0
 offset_top = 120.0
 offset_right = 110.0
 offset_bottom = 220.0
+focus_next = NodePath("../B1")
 
 [node name="B1" parent="." instance=ExtResource("1_ig7tw")]
 offset_left = 120.0
 offset_top = 120.0
 offset_right = 220.0
 offset_bottom = 220.0
+focus_next = NodePath("../B2")
 
 [node name="B2" parent="." instance=ExtResource("1_ig7tw")]
 offset_left = 230.0
 offset_top = 120.0
 offset_right = 330.0
 offset_bottom = 220.0
+focus_next = NodePath("../C0")
 
 [node name="C0" parent="." instance=ExtResource("1_ig7tw")]
 offset_left = 10.0
 offset_top = 230.0
 offset_right = 110.0
 offset_bottom = 330.0
+focus_next = NodePath("../C1")
 
 [node name="C1" parent="." instance=ExtResource("1_ig7tw")]
 offset_left = 120.0
 offset_top = 230.0
 offset_right = 220.0
 offset_bottom = 330.0
+focus_next = NodePath("../C2")
 
 [node name="C2" parent="." instance=ExtResource("1_ig7tw")]
 offset_left = 230.0
 offset_top = 230.0
 offset_right = 330.0
 offset_bottom = 330.0
+focus_next = NodePath("../A0")
+
+[node name="First" type="Button" parent="."]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -91.0
+offset_top = -26.5
+offset_right = -19.0
+offset_bottom = 26.5
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 32
+text = "先手"
+
+[node name="Second" type="Button" parent="."]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = 19.0
+offset_top = -26.5
+offset_right = 91.0
+offset_bottom = 26.5
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 32
+text = "后手"

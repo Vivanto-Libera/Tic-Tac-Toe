@@ -14,7 +14,7 @@ public partial class Tile : Button
 	{
 		state = newState;
 		Text = state.ToString();
-		Disabled = true;
+		SetDeferred(PropertyName.Disabled, true);
 	}
 	public State getState() 
 	{
