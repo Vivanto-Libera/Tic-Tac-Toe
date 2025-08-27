@@ -35,6 +35,7 @@ public partial class Main : Node
 				string column = j.ToString();
 				string tileName = row + column;
 				tiles[i, j] = GetNode<Tile>(tileName);
+				tiles[i, j].SetDeferred(Tile.PropertyName.Disabled, true);
 			}
 		}
 	}
@@ -154,16 +155,10 @@ public class AlphaBeta
 			y = y1;
 		}
 	}
-	public struct Action
-	{
-		public Point point;
-		public int v;
-		public Action(Point aPoint, int aV) 
-		{
-			point = aPoint;
-			v = aV;
-		}
-	}
+
+	List<Point> action1 = new List<Point>();
+	List<Point> action0 = new List<Point>();
+	List<Point> actionm1 = new List<Point>();
 
 	public AlphaBeta(Tile[,] theBoard) 
 	{
@@ -177,22 +172,29 @@ public class AlphaBeta
 	}
 	public Point GetTile() 
 	{
-		Point point = MaxValue(-2,2).point;
-		return point;
+		MaxValue(-2, 2, true);
+		if(action1.Count != 0) 
+		{
+			return action1[0];
+		}
+		if(action0.Count != 0) 
+		{
+			return action0[0];
+		}
+		return actionm1[0];
 	}
-	private Action MaxValue(int alpha, int beta) 
+	private int MaxValue(int alpha, int beta, bool isFirst) 
 	{
 		WhoWin who = JudgeWhoWin();
 		if (who == WhoWin.XWin)
 		{
-			return new Action(new Point(0, 0), -1);
+			return -1;
 		}
 		if(who == WhoWin.Draw) 
 		{
-			return new Action(new Point(0, 0), 0);
+			return 0;
 		}
 		int v = -2;
-		Action newAction = new Action(new Point(0, 0), v);
 		for (int i = 0; i < 3; i++) 
 		{
 			for(int j = 0; j < 3; j++) 
@@ -200,34 +202,45 @@ public class AlphaBeta
 				if(board[i, j] == None) 
 				{
 					board[i, j] = O;
-					int newV = MinValue(alpha, beta).v;
-					if(newV >= beta) 
+					int newV = MinValue(alpha, beta);
+					if (newV >= beta) 
 					{
 						board[i, j] = None;
-						return new Action(new Point(i, j), newV);
+						return newV;
 					}
-					if(newV > v) 
+					if (isFirst)
 					{
-						v = newV;
-						newAction = new Action(new Point(i, j), v);
+						if (newV == 1)
+						{
+							action1.Add(new Point(i, j));
+						}
+						else if (newV == 0)
+						{
+							action0.Add(new Point(i, j));
+						}
+						else if (newV == -1)
+						{
+							actionm1.Add(new Point(i, j));
+						}
 					}
+					v = newV > v ? newV : v;
 					alpha = v > alpha ? v : alpha;
 					board[i, j] = None;
 				}
 			}
 		}
-		return newAction;
+		return v;
 	}
-	private Action MinValue(int alpha, int beta)
+	private int MinValue(int alpha, int beta)
 	{
 		WhoWin who = JudgeWhoWin();
 		if (who == WhoWin.OWin)
 		{
-			return new Action(new Point(0, 0), 1);
+			return 1;
 		}
 		if (who == WhoWin.Draw)
 		{
-			return new Action(new Point(0, 0), 0);
+			return 0;
 		}
 		int v = 2;
 		for (int i = 0; i < 3; i++)
@@ -237,11 +250,11 @@ public class AlphaBeta
 				if (board[i, j] == None)
 				{
 					board[i, j] = X;
-					int newV = MaxValue(alpha, beta).v;
+					int newV = MaxValue(alpha, beta, false);
 					if (newV <= alpha)
 					{
 						board[i, j] = None;
-						return new Action(new Point(0, 0), newV);
+						return newV;
 					}
 					v = newV < v ? newV : v;
 					beta = v < beta ? v : beta;
@@ -249,7 +262,7 @@ public class AlphaBeta
 				}
 			}
 		}
-		return new Action(new Point(0, 0), v);
+		return v;
 	}
 
 	public WhoWin JudgeWhoWin() 
@@ -280,7 +293,7 @@ public class AlphaBeta
 				return StateToWhoWin(board[1, 1]);
 			}
 		}
-		for(int i=0;i<3;i++)
+		for(int i = 0; i < 3; i++)
 		{
 			for(int j = 0; j < 3; j++) 
 			{
