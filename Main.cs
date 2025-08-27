@@ -175,13 +175,13 @@ public class AlphaBeta
 		MaxValue(-2, 2, true);
 		if(action1.Count != 0) 
 		{
-			return action1[0];
+			return action1[GD.RandRange(0, action1.Count - 1)];
 		}
 		if(action0.Count != 0) 
 		{
-			return action0[0];
+			return action0[GD.RandRange(0, action0.Count - 1)];
 		}
-		return actionm1[0];
+		return actionm1[GD.RandRange(0, actionm1.Count - 1)];
 	}
 	private int MaxValue(int alpha, int beta, bool isFirst) 
 	{
@@ -224,11 +224,11 @@ public class AlphaBeta
 						}
 					}
 					v = newV > v ? newV : v;
-					alpha = v > alpha ? v : alpha;
 					board[i, j] = None;
 				}
 			}
 		}
+		alpha = v > alpha ? v : alpha;
 		return v;
 	}
 	private int MinValue(int alpha, int beta)
@@ -257,11 +257,11 @@ public class AlphaBeta
 						return newV;
 					}
 					v = newV < v ? newV : v;
-					beta = v < beta ? v : beta;
 					board[i, j] = None;
 				}
 			}
 		}
+		beta = v < beta ? v : beta;
 		return v;
 	}
 
