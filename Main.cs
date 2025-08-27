@@ -5,6 +5,8 @@ using static Tile.State;
 
 public partial class Main : Node
 {
+	[Signal]
+	public delegate void GameOverEventHandler(int result);
 	public Tile[,] tiles = new Tile[3, 3];
 	public Main() 
 	{
@@ -62,22 +64,29 @@ public partial class Main : Node
 	public void OnSecondPressed() 
 	{
 		OrderSelected();
+		AIMove();
     }
 
 	public void AIMove() 
 	{
-		
+		AlphaBeta.Point point = new AlphaBeta(tiles).GetTile();
+		tiles[point.x, point.y].setState(O);
+		JudgeWin();
 	}
 	
 	public void JudgeWin() 
 	{
-
+		AlphaBeta.WhoWin who = new AlphaBeta(tiles).JudgeWhoWin();
+		if(who != AlphaBeta.WhoWin.NotEnd) 
+		{
+			EmitSignal(SignalName.GameOver,(int)who);
+		}
 	}
 }
 
 public class AlphaBeta 
 {
-	private enum WhoWin 
+	public enum WhoWin 
 	{
 		OWin,
 		XWin,
@@ -87,8 +96,8 @@ public class AlphaBeta
 	Tile.State[,] board = new Tile.State[3, 3];
 	public struct Point 
 	{
-		int x;
-		int y;
+		public int x;
+		public int y;
 		public Point(int x1, int y1) 
 		{
 			x = x1;
@@ -193,7 +202,7 @@ public class AlphaBeta
 		board[x, y] = None;
 		return curValue;
     }
-	private WhoWin JudgeWhoWin() 
+	public WhoWin JudgeWhoWin() 
 	{
 		if (board[0, 0] != None) 
 		{
