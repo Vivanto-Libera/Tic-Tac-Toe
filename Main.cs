@@ -1,5 +1,6 @@
 using Godot;
 using System;
+using System.Collections.Generic;
 using static Tile.State;
 
 public partial class Main : Node
@@ -84,6 +85,19 @@ public class AlphaBeta
 		NotEnd,
 	}
 	Tile.State[,] board = new Tile.State[3, 3];
+	public struct Point 
+	{
+		int x;
+		int y;
+		public Point(int x1, int y1) 
+		{
+			x = x1;
+			y = y1;
+		}
+	}
+	List<Point> points0;
+	List<Point> points1;
+	List<Point> pointsm1;
 
 	public AlphaBeta(Tile[,] theBoard) 
 	{
@@ -95,15 +109,36 @@ public class AlphaBeta
             }
         }
     }
-	public void GetTile(ref int x, ref int y) 
+	public Point GetTile() 
 	{
         for (int i = 0; i < 3; i++)
         {
             for (int j = 0; j < 3; j++)
             {
-				DeepFirst(0, 0, true, 2);
+				int theValue = DeepFirst(i, j, true, 2);
+				if (theValue == 1)
+				{
+					points1.Add(new Point(i, j));
+				}
+				else if (theValue == 0 && points1.Count == 0) 
+				{
+					points0.Add(new Point(i, j));
+				}
+				else if(points0.Count == 0) 
+				{
+					pointsm1.Add(new Point(i, j));
+                }
             }
         }
+		if(points1.Count != 0) 
+		{
+			return points1[GD.RandRange(0, points1.Count - 1)];
+		}
+        if (points0.Count != 0)
+        {
+            return points0[GD.RandRange(0, points0.Count - 1)];
+        }
+        return pointsm1[GD.RandRange(0, pointsm1.Count - 1)];
     }
 	private int DeepFirst(int x, int y, bool isMax, int parent) 
 	{
@@ -126,7 +161,38 @@ public class AlphaBeta
 		{
 			return -1;
 		}
-	}
+        for (int i = 0; i < 3; i++)
+        {
+            for (int j = 0; j < 3; j++)
+            {
+                int newValue = DeepFirst(i, j, !isMax, curValue);
+				if (isMax) 
+				{
+					if(newValue > curValue) 
+					{
+						curValue = newValue;
+					}
+					if(curValue > parent) 
+					{
+						return parent;
+					}
+				}
+				else 
+				{
+                    if (newValue < curValue)
+                    {
+                        curValue = newValue;
+                    }
+                    if (curValue < parent)
+                    {
+                        return parent;
+                    }
+                }
+            }
+        }
+		board[x, y] = None;
+		return curValue;
+    }
 	private WhoWin JudgeWhoWin() 
 	{
 		if (board[0, 0] != None) 
