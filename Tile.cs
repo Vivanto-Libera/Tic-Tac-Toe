@@ -20,6 +20,11 @@ public partial class Tile : Button
 	public void setState(State newState)
 	{
 		state = newState;
+		if(state == State.None) 
+		{
+			Text = "";
+			return;
+		}
 		Text = state.ToString();
 		SetDeferred(PropertyName.Disabled, true);
 	}

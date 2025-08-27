@@ -76,30 +76,30 @@ public partial class Main : Node
 	{
 		AlphaBeta.Point point = new AlphaBeta(tiles).GetTile();
 		tiles[point.x, point.y].setState(O);
-		JudgeWin();
+		JudgeWin(false);
 	}
 
-	public bool JudgeWin() 
+	public void JudgeWin(bool isPlayerMove) 
 	{
 		AlphaBeta.WhoWin who = new AlphaBeta(tiles).JudgeWhoWin();
 		if(who != AlphaBeta.WhoWin.NotEnd) 
 		{
 			EmitSignal(SignalName.GameOver,(int)who);
-			return true;
+			return;
 		}
-		return false;
+		if (isPlayerMove)
+		{
+			AIMove();
+		}
 	}
 
 	public void OnTilePressed(int row, int column) 
 	{
 		tiles[row, column].setState(X);
-		if(JudgeWin() == false) 
-		{
-			AIMove();
-		}
+		JudgeWin(true);
 	}
 	
-	public async Task OnGameOver(int result) 
+	public async void OnGameOver(int result) 
 	{
 		for (int i = 0; i < 3; i++)
 		{
@@ -142,7 +142,8 @@ public class AlphaBeta
 		Draw,
 		NotEnd,
 	}
-	Tile.State[,] board = new Tile.State[3, 3];
+	
+	public Tile.State[,] board = new Tile.State[3, 3];
 	public struct Point 
 	{
 		public int x;
@@ -153,9 +154,16 @@ public class AlphaBeta
 			y = y1;
 		}
 	}
-	List<Point> points0 = new List<Point>();
-	List<Point> points1 = new List<Point>();
-	List<Point> pointsm1 = new List<Point>();
+	public struct Action
+	{
+		public Point point;
+		public int v;
+		public Action(Point aPoint, int aV) 
+		{
+			point = aPoint;
+			v = aV;
+		}
+	}
 
 	public AlphaBeta(Tile[,] theBoard) 
 	{
@@ -169,88 +177,81 @@ public class AlphaBeta
 	}
 	public Point GetTile() 
 	{
-		for (int i = 0; i < 3; i++)
-		{
-			for (int j = 0; j < 3; j++)
-			{
-				int theValue = DeepFirst(i, j, true, 2);
-				if (theValue == 1)
-				{
-					points1.Add(new Point(i, j));
-				}
-				else if (theValue == 0 && points1.Count == 0) 
-				{
-					points0.Add(new Point(i, j));
-				}
-				else if(points0.Count == 0) 
-				{
-					pointsm1.Add(new Point(i, j));
-				}
-			}
-		}
-		if(points1.Count != 0) 
-		{
-			return points1[GD.RandRange(0, points1.Count - 1)];
-		}
-		if (points0.Count != 0)
-		{
-			return points0[GD.RandRange(0, points0.Count - 1)];
-		}
-		return pointsm1[GD.RandRange(0, pointsm1.Count - 1)];
+		Point point = MaxValue(-2,2).point;
+		return point;
 	}
-	private int DeepFirst(int x, int y, bool isMax, int parent) 
+	private Action MaxValue(int alpha, int beta) 
 	{
-		if (board[x,y] != None) 
+		WhoWin who = JudgeWhoWin();
+		if (who == WhoWin.XWin)
 		{
-			return parent;
+			return new Action(new Point(0, 0), -1);
 		}
-		int curValue = isMax ? -2 : 2;
-		board[x, y] = isMax ? O : X;
-		WhoWin whoWin = JudgeWhoWin();
-		if(whoWin == WhoWin.Draw) 
+		if(who == WhoWin.Draw) 
 		{
-			return 0;
+			return new Action(new Point(0, 0), 0);
 		}
-		if(whoWin == WhoWin.OWin)
+		int v = -2;
+		Action newAction = new Action(new Point(0, 0), v);
+		for (int i = 0; i < 3; i++) 
 		{
-			return 1;
+			for(int j = 0; j < 3; j++) 
+			{
+				if(board[i, j] == None) 
+				{
+					board[i, j] = O;
+					int newV = MinValue(alpha, beta).v;
+					if(newV >= beta) 
+					{
+						board[i, j] = None;
+						return new Action(new Point(i, j), newV);
+					}
+					if(newV > v) 
+					{
+						v = newV;
+						newAction = new Action(new Point(i, j), v);
+					}
+					alpha = v > alpha ? v : alpha;
+					board[i, j] = None;
+				}
+			}
 		}
-		else if(whoWin == WhoWin.XWin)
+		return newAction;
+	}
+	private Action MinValue(int alpha, int beta)
+	{
+		WhoWin who = JudgeWhoWin();
+		if (who == WhoWin.OWin)
 		{
-			return -1;
+			return new Action(new Point(0, 0), 1);
 		}
+		if (who == WhoWin.Draw)
+		{
+			return new Action(new Point(0, 0), 0);
+		}
+		int v = 2;
 		for (int i = 0; i < 3; i++)
 		{
 			for (int j = 0; j < 3; j++)
 			{
-				int newValue = DeepFirst(i, j, !isMax, curValue);
-				if (isMax) 
+				if (board[i, j] == None)
 				{
-					if(newValue > curValue) 
+					board[i, j] = X;
+					int newV = MaxValue(alpha, beta).v;
+					if (newV <= alpha)
 					{
-						curValue = newValue;
+						board[i, j] = None;
+						return new Action(new Point(0, 0), newV);
 					}
-					if(curValue > parent) 
-					{
-						return parent;
-					}
-				}
-				else 
-				{
-					if (newValue < curValue)
-					{
-						curValue = newValue;
-					}
-					if (curValue < parent)
-					{
-						return parent;
-					}
+					v = newV < v ? newV : v;
+					beta = v < beta ? v : beta;
+					board[i, j] = None;
 				}
 			}
 		}
-		board[x, y] = None;
-		return curValue;
+		return new Action(new Point(0, 0), v);
 	}
+
 	public WhoWin JudgeWhoWin() 
 	{
 		if (board[0, 0] != None) 
@@ -274,7 +275,7 @@ public class AlphaBeta
 			if ((board[1, 1] == board[1, 0] && board[1, 1] == board[1, 2])
 				|| (board[1, 1] == board[0, 1] && board[1, 1] == board[2, 1])
 				|| (board[1, 1] == board[0, 0] && board[1, 1] == board[2, 2])
-				|| (board[1, 1] == board[2, 0] && board[1, 1] == board[2, 0]))
+				|| (board[1, 1] == board[2, 0] && board[1, 1] == board[0, 2]))
 			{
 				return StateToWhoWin(board[1, 1]);
 			}
