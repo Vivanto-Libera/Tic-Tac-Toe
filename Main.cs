@@ -12,12 +12,13 @@ public partial class Main : Node
 	public delegate void GameResetEventHandler();
 
 	public Tile[,] tiles = new Tile[3, 3];
-	public Main() 
+
+	public override void _Ready()
 	{
-		for(int i = 0;i < 3; i++) 
+		for (int i = 0; i < 3; i++)
 		{
 			string row = "";
-			switch (i) 
+			switch (i)
 			{
 				case 0:
 					row = "A";
@@ -29,7 +30,7 @@ public partial class Main : Node
 					row = "C";
 					break;
 			}
-			for(int j = 0; j < 3; j++) 
+			for (int j = 0; j < 3; j++)
 			{
 				string column = j.ToString();
 				string tileName = row + column;
@@ -78,39 +79,44 @@ public partial class Main : Node
 		JudgeWin();
 	}
 
-	public void JudgeWin() 
+	public bool JudgeWin() 
 	{
 		AlphaBeta.WhoWin who = new AlphaBeta(tiles).JudgeWhoWin();
 		if(who != AlphaBeta.WhoWin.NotEnd) 
 		{
 			EmitSignal(SignalName.GameOver,(int)who);
+			return true;
 		}
+		return false;
 	}
 
 	public void OnTilePressed(int row, int column) 
 	{
 		tiles[row, column].setState(X);
-		JudgeWin();
+		if(JudgeWin() == false) 
+		{
+			AIMove();
+		}
 	}
 	
 	public async Task OnGameOver(int result) 
 	{
-        for (int i = 0; i < 3; i++)
-        {
-            for (int j = 0; j < 3; j++)
-            {
-                tiles[i, j].SetDeferred(Tile.PropertyName.Disabled, true);
-            }
-        }
-        Label message = GetNode<Label>("Message");
+		for (int i = 0; i < 3; i++)
+		{
+			for (int j = 0; j < 3; j++)
+			{
+				tiles[i, j].SetDeferred(Tile.PropertyName.Disabled, true);
+			}
+		}
+		Label message = GetNode<Label>("Message");
 		if(result == (int)AlphaBeta.WhoWin.OWin) 
 		{
 			message.Text = "你输了";
 		}
-        else if (result == (int)AlphaBeta.WhoWin.XWin)
-        {
-            message.Text = "你赢了";
-        }
+		else if (result == (int)AlphaBeta.WhoWin.XWin)
+		{
+			message.Text = "你赢了";
+		}
 		else 
 		{
 			message.Text = "平局";
@@ -119,7 +125,7 @@ public partial class Main : Node
 		await ToSignal(GetTree().CreateTimer(3), Timer.SignalName.Timeout);
 		message.Hide();
 		EmitSignal(SignalName.GameReset);
-    }
+	}
 
 	public void OnGameReset() 
 	{

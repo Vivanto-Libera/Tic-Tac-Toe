@@ -12,6 +12,13 @@ corner_radius_bottom_left = 16
 [node name="Tile" type="Button"]
 offset_right = 100.0
 offset_bottom = 100.0
+theme_override_colors/font_disabled_color = Color(1, 1, 1, 1)
+theme_override_colors/font_hover_pressed_color = Color(1, 1, 1, 1)
+theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(1, 1, 1, 1)
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_colors/font_focus_color = Color(0, 0, 0, 1)
+theme_override_colors/font_pressed_color = Color(1, 1, 1, 1)
 theme_override_font_sizes/font_size = 64
 theme_override_styles/focus = SubResource("StyleBoxFlat_vx4y2")
 theme_override_styles/disabled = SubResource("StyleBoxFlat_vx4y2")
@@ -20,3 +27,5 @@ theme_override_styles/hover = SubResource("StyleBoxFlat_vx4y2")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_vx4y2")
 theme_override_styles/normal = SubResource("StyleBoxFlat_vx4y2")
 script = ExtResource("1_n3f48")
+
+[connection signal="pressed" from="." to="." method="OnPressed"]
