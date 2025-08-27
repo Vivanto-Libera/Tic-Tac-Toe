@@ -1,0 +1,22 @@
+[gd_scene load_steps=3 format=3 uid="uid://d1v7u1kbvryhb"]
+
+[ext_resource type="Script" uid="uid://dsl4oq0ya23kr" path="res://Tile.cs" id="1_n3f48"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_vx4y2"]
+bg_color = Color(0, 0, 0, 1)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+
+[node name="Tile" type="Button"]
+offset_right = 100.0
+offset_bottom = 100.0
+theme_override_font_sizes/font_size = 64
+theme_override_styles/focus = SubResource("StyleBoxFlat_vx4y2")
+theme_override_styles/disabled = SubResource("StyleBoxFlat_vx4y2")
+theme_override_styles/hover_pressed = SubResource("StyleBoxFlat_vx4y2")
+theme_override_styles/hover = SubResource("StyleBoxFlat_vx4y2")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_vx4y2")
+theme_override_styles/normal = SubResource("StyleBoxFlat_vx4y2")
+script = ExtResource("1_n3f48")
